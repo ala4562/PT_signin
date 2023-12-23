@@ -1,0 +1,86 @@
+tasks:
+  #自动签到
+  sign_in:
+    auto_sign_in:
+      user-agent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:121.0) Gecko/20100101 Firefox/121.0'
+      max_workers: 1
+      get_messages: no #设为no跳过获取未读信息。默认no
+      get_details: yes #设为no跳过获取统计。默认yes      
+      aipocr:  #baidu ocr参数
+        app_id: '45594487'
+        api_key: 'QgwVqqdCIza41rseKSbNnzTj'
+        secret_key: 'zkuXg1XLToYYRrfQtPqbVcuYovAgt2GF'
+      sites:
+      #以下为具体站点设置 
+      #以下为常见示例 具体以https://github.com/madwind/flexget_qbittorrent_mod/blob/master/config_example.yml#L36 下的示例为准 
+      #主域名: cookie 
+      #  1ptba: xxxxxxxx
+      #部分cookie过期太快，而改用模拟登陆的站点，如以下站点 无此站点的请删除，请删除
+        mt:
+          - name: mt
+            host: kp.m-team.cc
+            port: 443
+            use_ssl: yes
+            username: cynicis
+            password: Qqf20021112%
+        mptt:
+          - name: ptt
+            host: www.pttime.org
+            port: 443
+            use_ssl: yes
+            username: cynicis
+            password: Qqf20021112%
+           
+        #u2特殊设置 无此站点的请删除
+          # 五个字符以上签到留言
+          comment: <comment>
+          ocr_config:
+            # 重试次数
+            retry: 3
+            # 最低识别字符数
+            char_count: 3
+            # 最低匹配分数
+            score: 50     
+    accept_all: yes
+    seen:
+      fields:
+        - title
+    notify:
+      task:
+        always_send: true
+        message: |+
+          {%- if task.accepted -%}
+          {%- for group in task.accepted|groupby('task') -%}
+          FlexGet has just signed in {{ group.list|length }} sites for task {{ group.grouper }}:
+          {% for entry in group.list %}
+          {{ loop.index }}: {{ entry.title }} {{ entry.result }}
+          {%- if entry.messages|d('') %}
+          Messages: {{ entry.messages }}
+          {% endif %}
+          {%- endfor -%}
+          {%- endfor -%}
+          {%- endif -%}
+          {%- if task.failed %}
+          {% for group in task.failed|groupby('task') %}
+          The following sites have failed for task {{ group.grouper }}:
+          {% for entry in group.list %}
+          {{ loop.index }}: {{ entry.title }} Reason: {{ entry.reason|d('unknown') }}
+          {%- if entry.messages|d('') %}
+          Messages: {{ entry.messages }}
+          {% endif %}
+          {%- endfor -%}
+          {%- endfor -%}
+          {%- endif -%}
+        via: #推送渠道选择 选择你需要的推送渠道 将不需要的删掉
+          - wecom:  #微信
+              corp_id: ''
+              corp_secret: ''
+              agent_id: ''
+              to_user: ''
+              image: 'details_report.png' 
+          - telegram_mod: #tg
+              bot_token: '2040765566:AAGSr_NtrQ0ZVlBqyosb9v0FvjPTh9kTZaE'
+              image: 'details_report.png'
+              recipients:
+                - username: 'centos99' #注意这里是用户名，不是昵称,不带@
+        
